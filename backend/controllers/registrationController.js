@@ -62,16 +62,27 @@ const registerForEvent = async (req, res) => {
         // Example: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d"
         // This unique string is what gets encoded into the QR image
 
-        // ── Step 6: Generate human-readable ticket number ────────────
-        // Format: TKT-XXXXXX (6 random uppercase alphanumeric characters)
-        const ticketNumber = "TKT-" + Math.random().toString(36)
-            .substring(2, 8)
-            .toUpperCase();
-        // Math.random() → 0.4fzyo82mvyr
-        // .toString(36)  → converts to base36 (0-9, a-z)
-        // .substring(2,8)→ takes 6 characters
-        // .toUpperCase() → "4FZYO8"
-        // Result: "TKT-4FZYO8"
+        // ── Step 6: Generate unique ticket number (with collision checking) ────
+        let ticketNumber;
+        let isUnique = false;
+        let attempts = 0;
+        
+        while (!isUnique && attempts < 10) {
+            ticketNumber = "TKT-" + Math.random().toString(36)
+                .substring(2, 8)
+                .toUpperCase();
+            
+            const existingReg = await Registration.findOne({ ticketNumber });
+            if (!existingReg) {
+                isUnique = true;
+            }
+            attempts++;
+        }
+        
+        // Fallback to secure dynamic ticket number if we hit too many collisions
+        if (!isUnique) {
+            ticketNumber = "TKT-" + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 5).toUpperCase();
+        }
 
         // ── Step 7: Create the registration document ─────────────────
         const registration = await Registration.create({
@@ -264,7 +275,7 @@ const downloadTicketPDF = async (req, res) => {
 // ════════════════════════════════════════════════════════════════
 const cancelRegistration = async (req, res) => {
     try {
-        const registration = await Registration.findById(req.params.registrationId);
+        const registration = await Registration.findById(req.params.registrationId).populate("event");
         if (!registration) {
             return res.status(404).json({ message: "Registration not found" });
         }
@@ -280,6 +291,12 @@ const cancelRegistration = async (req, res) => {
 
         if (registration.checkedIn) {
             return res.status(400).json({ message: "Cannot cancel a ticket that has already been checked in" });
+        }
+
+        // Prevent cancelling tickets for past events
+        const eventDate = new Date(registration.event.date);
+        if (eventDate < new Date()) {
+            return res.status(400).json({ message: "Cannot cancel a ticket for a past event" });
         }
 
         registration.status = "cancelled";

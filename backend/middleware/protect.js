@@ -54,4 +54,15 @@ const protect = async (req, res, next) => {
 };
 
 // ─── Export the middleware ───────────────────────────────────────
-module.exports = protect;
+const restrictTo = (...roles) => {
+    return (req, res, next) => {
+        if (!req.user || !roles.includes(req.user.role)) {
+            return res.status(403).json({
+                message: `Not authorized - role '${req.user?.role || "guest"}' does not have access to this resource`
+            });
+        }
+        next();
+    };
+};
+
+module.exports = { protect, restrictTo };

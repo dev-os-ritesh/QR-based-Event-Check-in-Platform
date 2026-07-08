@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { getEvents } from "@/services/eventService";
+import { getOrganizerEvents } from "@/services/eventService";
 import { checkInAttendee } from "@/services/registrationService";
 import { showToast } from "@/components/ui/Toast";
 import { Input } from "@/components/ui/input";
@@ -13,10 +13,10 @@ export default function Scanner() {
   const [qrCode, setQrCode] = useState("");
   const [scanResult, setScanResult] = useState(null);
 
-  // ── Query: Fetch published events list using Service ────────────
+  // ── Query: Fetch organizer's events list using Service ──────────
   const { data: events } = useQuery({ 
-    queryKey: ["events"], 
-    queryFn: getEvents 
+    queryKey: ["organizer-events"], 
+    queryFn: getOrganizerEvents 
   });
 
   // ── Mutation: Send QR check-in payload using Service ─────────────

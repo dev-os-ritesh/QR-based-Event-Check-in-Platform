@@ -13,7 +13,7 @@ const {
 } = require("../controllers/registrationController");
 
 // ─── Import protect middleware ───────────────────────────────────
-const protect = require("../middleware/protect");
+const { protect, restrictTo } = require("../middleware/protect");
 
 // ── All registration routes require login (all protected) ────────
 
@@ -24,7 +24,7 @@ router.post("/:eventId", protect, registerForEvent);
 router.get("/my", protect, getMyRegistrations);
 
 // GET /api/registrations/event/:eventId → all registrations for an event (organizer)
-router.get("/event/:eventId", protect, getEventRegistrations);
+router.get("/event/:eventId", protect, restrictTo("organizer", "admin"), getEventRegistrations);
 
 // GET /api/registrations/:registrationId/qr → get QR code for this ticket
 router.get("/:registrationId/qr", protect, getQRCode);
