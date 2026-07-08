@@ -1,5 +1,7 @@
 # QR-Based Event Check-In Platform 🎟️✨
 
+**Live Application URL:** [https://qr-based-event-check-in-platform.vercel.app/](https://qr-based-event-check-in-platform.vercel.app/)
+
 A comprehensive full-stack web application designed for seamless event registration, ticketing, and real-time check-in using secure QR codes. The platform supports a dual-portal experience tailored for **Attendees** and **Event Organizers**.
 
 ---
